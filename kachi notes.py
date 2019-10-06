@@ -1,10 +1,10 @@
 #-------------------------------------------------------------------------------
-# Name:        create df with pandas
+# Name:        Create algorithm to solve Hachihokakero
 # Purpose:
 #
 # Author:      fossp
 #
-# Created:     15/06/2019
+# Created:     30/09/2019
 # Copyright:   (c) fossp 2019
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
@@ -63,10 +63,22 @@ class gridCell:
     def currBridges(this):
         return len(this.connectedIslands)
 
+    def makeBridge():
+        if isIsland == True:
+            print("Can't create bridge. This is an island")
+            return False
+        if isBridge == True:
+            print("This is already a bridge")
+            return False
+        else:
+            isBridge = True
+
 
 
 
     def connect(this, otherCell):
+    ######################################################################
+    # Preliminary Checking
 
         # Make sure the subject is an island
         if (this.isIsland == False):
@@ -102,8 +114,17 @@ class gridCell:
             print("Added a second connection.")
             return True
 
-        # If they are adjacent, and in the same row...
+
+        #############################################################
+        # Actual connecting...
+
+        # All the nodes between will need to become bridges if the
+        # connection is possible.
+        toBeBridges = []
+
+        # If they are adjacent by the same row...
         if otherCell.row == this.row:
+            print("same row")
             smallerColumn = min(this.column, otherCell.column)
             largerColumn = max(this.column, otherCell.column)
 
@@ -113,26 +134,60 @@ class gridCell:
                 print(str(currCell.column) + " " + str(currCell.row) )
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
+                    print("currCell is bridge: " + str(currCell.isBridge))
+                    print("currCell is island: " + str(currCell.isIsland))
                     return False
                 else:
-                    currCell.isBridge = True
+                    toBeBridges.append(currCell)
 
-            otherCell.connectedIslands.append(this)
-            this.connectedIslands.append(otherCell)
-            print("Connect succesful")
-            return True
+        # If they are adjacent by the same COLUMN...
+        if otherCell.column == this.column:
+            print("same column")
+            smallerRow = min(this.row, otherCell.row)
+            largerRow = max(this.row, otherCell.row)
+
+            # Now check nodes between them for obstacles
+            for row in range(smallerRow+1, largerRow):
+                currCell = gridColumns[this.column][row]
+                if (currCell.isIsland or currCell.isBridge):
+                    print("we hit something. can't connect")
+                    print("currCell is bridge: " + str(currCell.isBridge))
+                    print("currCell is island: " + str(currCell.isIsland))
+                    return False
+                else:
+                    toBeBridges.append(currCell)
+
+        # If all went well, turn the between cells into bridges
+        for cell in toBeBridges:
+            cell.isBridge = True
+
+        # Now add each island to the other's connect list.
+        otherCell.connectedIslands.append(this)
+        this.connectedIslands.append(otherCell)
+        print("Connect succesful")
+        return True
+
+
 
     def disconnect(this, otherCell):
+    ########################################################################
 
+        # They are not connected at all.
         if (this.connectedIslands.count(otherCell) < 1):
             print("They aren't even connected.")
             return False
+
+        # They are connected once.
         if (this.connectedIslands.count(otherCell) == 2):
             print("Disconnect success. 1 left.")
             this.connectedIslands.remove(otherCell)
             otherCell.connectedIslands.remove(this)
             return True
-        else:
+
+        # They are connected twice.
+        # This case requires turn cells from bridges back into empty.
+        if (this.connectedIslands.count(otherCell) == 1):
+
             if otherCell.row == this.row:
                 smallerColumn = min(this.column, otherCell.column)
                 largerColumn = max(this.column, otherCell.column)
@@ -145,16 +200,28 @@ class gridCell:
                         print("dismantling bridge")
                     else:
                         print("There should be a bridge here...but there isn't")
-                        print("Is it a bridge? " + currCell.isBrdige)
+                        print("Is it a bridge? " + currCell.isBridge)
                         print("Is it an island? " + currCell.isIsland)
 
-            print("Disconnect success. 0 left.")
-            this.connectedIslands.remove(otherCell)
-            otherCell.connectedIslands.remove(this)
-            return True
+            if otherCell.column == this.column:
+                smallerRow = min(this.row, otherCell.row)
+                largerRow = max(this.row, otherCell.row)
+                # Now check nodes between them for obstacles
+                for row in range(smallerRow+1, largerRow):
+                    currCell = gridColumns[this.column][row]
+                    print(str(currCell.column) + " " + str(currCell.row) )
+                    if (currCell.isBridge):
+                        currCell.isBridge = False
+                        print("dismantling bridge")
+                    else:
+                        print("There should be a bridge here...but there isn't")
+                        print("Is it a bridge? " + currCell.isBridge)
+                        print("Is it an island? " + currCell.isIsland)
 
-
-
+        print("Disconnect success. 0 left.")
+        this.connectedIslands.remove(otherCell)
+        otherCell.connectedIslands.remove(this)
+        return True
 
     def makeBridge():
         if isIsland == True:
@@ -169,12 +236,9 @@ class gridCell:
 
 
 
-
-
-
 ### Now let's populate the grid itself.
 
-n = 4
+n = 7
 gridColumns = []
 
 for i in range(0, n):
@@ -184,9 +248,17 @@ for i in range(0, n):
         gridColumns[i].append(gridCell(False,
         column = i, row=j)
         )
-gridColumns[3][0].isIsland = True
-gridColumns[2][1].isIsland = True
+
+
 gridColumns[1][0].isIsland = True
+gridColumns[1][6].isIsland = True
+
+gridColumns[0][2].isIsland = True
+gridColumns[2][2].isIsland = True
+
+
+
+
 
 
 
