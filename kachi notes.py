@@ -37,24 +37,36 @@ class gridCell:
     # between two gridCells and block other connections from crossing. If a grid
     # cell is NEITHER, than it can possibly become a bridge.
 
-    def __init__(currCell, isIsland, column, row,
-    maxBridges=0, adjacentIslands = [], isBridge=False):
+    def __init__ (this, isIsland, column, row,
+    maxBridges=0, adjacentIslands = set(), isBridge=False):
 
         if isIsland == True:
-            currCell.isIsland = True
-            currCell.maxBridges = maxBridges
-            currCell.adjacentIslands = adjacentIslands
-            currCell.isBridge = False
+            this.isIsland = True
+            this.maxBridges = maxBridges
+            this.adjacentIslands = adjacentIslands
+            this.isBridge = False
+            gridColumns[column][row] = this
         else:
-            currCell.isIsland = False
-            currCell.maxBridges = maxBridges
-            currCell.adjacentIslands = adjacentIslands
+            this.isIsland = False
+            this.maxBridges = maxBridges
+            this.adjacentIslands = adjacentIslands
 
-        currCell.isBridge = isBridge
-        currCell.adjacentIslands = []
-        currCell.connectedIslands = []
-        currCell.column = column
-        currCell.row = row
+        this.isBridge = isBridge
+        this.adjacentIslands = set()
+        this.connectedIslands = []
+        this.column = column
+        this.row = row
+
+    def create(this, maxBridges):
+        this.isIsland = True
+        this.maxBridges = maxBridges
+
+    def printCoords(this):
+        print(str(this.column)+ " " + str(this.row))
+
+    def printAdjacents(this):
+        for island in this.adjacentIslands:
+            island.printCoords()
 
     def setIsland(this, maxBridges):
         this.maxBridges = maxBridges
@@ -62,6 +74,12 @@ class gridCell:
 
     def currBridges(this):
         return len(this.connectedIslands)
+
+    def completeIsland(this):
+        if this.currBridges() == this.maxBridges:
+            return True
+        else:
+            return False
 
     def makeBridge():
         if isIsland == True:
@@ -233,8 +251,70 @@ class gridCell:
         else:
             isBridge = True
 
+    def getAdjacents(this):
+        # Find adjacent islands in same column
+        # Above
+        for y in range(this.row-1, -1, -1):
+            if gridColumns[this.column][y].isIsland:
+                print("Found island above.")
+                print( str(this.column) + " " + str(y))
+                currIsland = gridColumns[this.column][y]
+                this.adjacentIslands.add(currIsland)
+                break
+        # Below
+        for y in range(this.row+1, n):
+            if gridColumns[this.column][y].isIsland:
+                print("Found island below.")
+                print( str(this.column) + " " + str(y))
+                currIsland = gridColumns[this.column][y]
+                this.adjacentIslands.add(currIsland)
+                break
+
+        # Left
+        for x in range(this.column-1, -1, -1):
+            if gridColumns[x][this.row].isIsland:
+                print("Found island to the left.")
+                print( str(x) + " " + str(this.row))
+                currIsland = gridColumns[x][this.row]
+                this.adjacentIslands.add(currIsland)
+                break
+        # Right
+        for x in range(this.column+1, n):
+            if gridColumns[x][this.row].isIsland:
+                print("Found island to the right.")
+                print( str(x) + " " + str(this.row))
+                currIsland = gridColumns[x][this.row]
+                this.adjacentIslands.add(currIsland)
+                break
+
+islandList = set()
 
 
+def printIslandList():
+    for island in islandList:
+        island.printCoords()
+
+def populateIslandList():
+    for column in gridColumns:
+        for cell in column:
+             if cell.isIsland:
+                 islandList.add(cell)
+
+def populateAdjacencyList():
+    for island in islandList:
+        island.getAdjacents()
+
+def removeCompletedIslands():
+    for island in islandList:
+        for x in island.adjacentIslands.copy():
+            if x.completeIsland():
+                island.adjacentIslands.remove(x)
+
+def setup():
+    populateIslandList()
+    populateAdjacencyList()
+
+### exec(open("kachi notes").read())
 
 ### Now let's populate the grid itself.
 
@@ -249,24 +329,16 @@ for i in range(0, n):
         column = i, row=j)
         )
 
-
-gridColumns[1][0].isIsland = True
-gridColumns[1][6].isIsland = True
-
-gridColumns[0][2].isIsland = True
-gridColumns[2][2].isIsland = True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+a = gridCell(True, 0, 0, 2)
+a1 = gridCell(True, 0, 3, 4)
+b = gridCell(True, 0, 6, 3)
+c = gridCell(True, 2, 1, 2)
+d = gridCell(True, 2, 3, 6)
+e = gridCell(True, 2, 5, 1)
+f = gridCell(True, 4, 0, 5)
+g = gridCell(True, 4, 3, 5)
+h = gridCell(True, 4, 5, 1)
+i = gridCell(True, 6, 0, 4)
+j = gridCell(True, 6, 2, 2)
+k = gridCell(True, 6, 4, 1)
+l = gridCell(True, 6, 6, 2)
