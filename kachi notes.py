@@ -75,8 +75,8 @@ class gridCell:
     def currBridges(this):
         return len(this.connectedIslands)
 
-    def completeIsland(this):
-        if this.currBridges() == this.maxBridges:
+    def isCompleteIsland(this):
+        if this.maxBridges == 0:
             return True
         else:
             return False
@@ -116,8 +116,13 @@ class gridCell:
         # Make sure we don't exceeed max connections
         if (this.connectedIslands.count(otherCell) >= 2):
             print("Can't connect again. Already have two connections.")
+            otherCell.printCoords()
             return False
 
+        # Make sure the island isn't full
+        if this.maxBridges == 0:
+            return False
+            
         # Make sure they are adjacent
         if otherCell.row != this.row and otherCell.column != this.column:
             print("ERROR: Node not adjacent")
@@ -146,14 +151,14 @@ class gridCell:
 
         # If they are adjacent by the same row...
         if otherCell.row == this.row:
-            print("same row")
+            print(" --- same row --- ")
             smallerColumn = min(this.column, otherCell.column)
             largerColumn = max(this.column, otherCell.column)
 
             # Now check nodes between them for obstacles
             for column in range(smallerColumn+1, largerColumn):
                 currCell = gridColumns[column][this.row]
-                print(str(currCell.column) + " " + str(currCell.row) )
+                # print(str(currCell.column) + " " + str(currCell.row) )
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
                     print("currCell is bridge: " + str(currCell.isBridge))
@@ -164,7 +169,7 @@ class gridCell:
 
         # If they are adjacent by the same COLUMN...
         if otherCell.column == this.column:
-            print("same column")
+            print(" --- same column --- ")
             smallerRow = min(this.row, otherCell.row)
             largerRow = max(this.row, otherCell.row)
 
@@ -321,14 +326,12 @@ def populateAdjacencyList():
 
 def removeCompletedIslands():
     for island in islandList:
-        for x in island.adjacentIslands.copy():
-            if x.completeIsland():
-                island.adjacentIslands.remove(x)
-
-def setup():
-    populateIslandList()
-    populateAdjacencyList()
-    removeCompletedIslands()
+        if island.isCompleteIsland():
+            island.adjacentIslands.clear()
+        else:
+            for x in island.adjacentIslands.copy():
+                if x.isCompleteIsland():
+                    island.adjacentIslands.remove(x)
 
 def checkSolved():
     for island in islandList:
@@ -336,19 +339,47 @@ def checkSolved():
             return False
     return True
 
-def findNextConnection():
-    findLonelyIsland()
 
-def findLonelyIslands():
+# def findLonelyIslands():
+#     for island in islandList:
+#         if ( len(island.adjacentIslands) == 1):
+#             island.printCoords()
+#             poppedIsland = island.adjacentIslands.pop()
+#             print("Popped Island:")
+#             poppedIsland.printCoords()
+#             island.connect(poppedIsland)
+#             island.connect(poppedIsland)
+
+def findGuaranteedConnections():
     for island in islandList:
-        if ( len(island.adjacentIslands) == 1):
-            poppedIsland = island.adjacentIslands.pop()
-            island.connect(poppedIsland)
-            island.connect(poppedIsland)
+        if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
+            print("-------------------------------------------------")
+            print("         Attempting to Connect Islands         ")
+            print("Island Found: ")
+            island.printCoords()
+            print("Connecting Islands.")
+            while (len(island.adjacentIslands) > 0):
+                poppedIsland = island.adjacentIslands.pop()
+                print("Popped Island:")
+                poppedIsland.printCoords()
+                island.connect(poppedIsland)
+                island.connect(poppedIsland)
+                print("Connected Islands. \n")
 
 
 
-### exec(open("kachi notes").read())
+
+def findNextConnection():
+    # Find solo islands
+    findGuaranteedConnections()
+    removeCompletedIslands()
+    #
+
+
+def setup():
+    populateIslandList()
+    populateAdjacencyList()
+
 
 ### Now let's populate the grid itself.
 
@@ -364,16 +395,23 @@ for i in range(0, n):
         column = i, row=j)
         )
 
+# Test Puzzle
+# a = gridCell(True, 0, 0, 2)
+# b = gridCell(True, 0, 2, 4)
+# c = gridCell(True, 0, 4, 4)
+# d = gridCell(True, 0, 6, 2)
+
+# This is our puzzle
 a = gridCell(True, 0, 0, 2)
-a1 = gridCell(True, 0, 3, 4)
-b = gridCell(True, 0, 6, 3)
-c = gridCell(True, 2, 1, 2)
-d = gridCell(True, 2, 3, 6)
-e = gridCell(True, 2, 5, 1)
-f = gridCell(True, 4, 0, 5)
-g = gridCell(True, 4, 3, 5)
-h = gridCell(True, 4, 5, 1)
-i = gridCell(True, 6, 0, 4)
-j = gridCell(True, 6, 2, 2)
-k = gridCell(True, 6, 4, 1)
-l = gridCell(True, 6, 6, 2)
+b = gridCell(True, 0, 3, 4)
+c = gridCell(True, 0, 6, 3)
+d = gridCell(True, 2, 1, 2)
+e = gridCell(True, 2, 3, 6)
+f = gridCell(True, 2, 5, 1)
+g = gridCell(True, 4, 0, 5)
+h = gridCell(True, 4, 3, 5)
+i = gridCell(True, 4, 5, 1)
+j = gridCell(True, 6, 0, 4)
+k = gridCell(True, 6, 2, 2)
+l = gridCell(True, 6, 4, 1)
+m = gridCell(True, 6, 6, 2)
