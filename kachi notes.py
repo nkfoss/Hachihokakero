@@ -127,8 +127,12 @@ class gridCell:
 
         # If they're already connected once, go ahead do it again.
         if (this.connectedIslands.count(otherCell) == 1):
+
             otherCell.connectedIslands.append(this)
+            otherCell.maxBridges = otherCell.maxBridges - 1
             this.connectedIslands.append(otherCell)
+            this.maxBridges = this.maxBridges - 1
+
             print("Added a second connection.")
             return True
 
@@ -181,7 +185,11 @@ class gridCell:
 
         # Now add each island to the other's connect list.
         otherCell.connectedIslands.append(this)
+        otherCell.maxBridges = otherCell.maxBridges - 1
+
         this.connectedIslands.append(otherCell)
+        this.maxBridges = this.maxBridges - 1
+
         print("Connect succesful")
         return True
 
@@ -198,8 +206,12 @@ class gridCell:
         # They are connected once.
         if (this.connectedIslands.count(otherCell) == 2):
             print("Disconnect success. 1 left.")
+
             this.connectedIslands.remove(otherCell)
+            this.maxBridges = this.maxBridges + 1
+
             otherCell.connectedIslands.remove(this)
+            otherCell.maxBridges = otherCell.maxBridges + 1
             return True
 
         # They are connected twice.
@@ -238,7 +250,10 @@ class gridCell:
 
         print("Disconnect success. 0 left.")
         this.connectedIslands.remove(otherCell)
+        this.maxBridges = this.maxBridges + 1
+
         otherCell.connectedIslands.remove(this)
+        otherCell.maxBridges = otherCell.maxBridges + 1
         return True
 
     def makeBridge():
@@ -313,12 +328,32 @@ def removeCompletedIslands():
 def setup():
     populateIslandList()
     populateAdjacencyList()
+    removeCompletedIslands()
+
+def checkSolved():
+    for island in islandList:
+        if len(island.adjacentIslands) > 0:
+            return False
+    return True
+
+def findNextConnection():
+    findLonelyIsland()
+
+def findLonelyIslands():
+    for island in islandList:
+        if ( len(island.adjacentIslands) == 1):
+            poppedIsland = island.adjacentIslands.pop()
+            island.connect(poppedIsland)
+            island.connect(poppedIsland)
+
+
 
 ### exec(open("kachi notes").read())
 
 ### Now let's populate the grid itself.
 
-n = 7
+n=7
+
 gridColumns = []
 
 for i in range(0, n):
