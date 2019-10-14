@@ -28,7 +28,7 @@
 # set 'n' rows/columns for a squre grid....(tbc)
 
 ####################################
-
+from Queue import PriorityQueue
 class gridCell:
 
     # Optional parameters come last. There are three general states that a gridCell
@@ -122,7 +122,7 @@ class gridCell:
         # Make sure the island isn't full
         if this.maxBridges == 0:
             return False
-            
+
         # Make sure they are adjacent
         if otherCell.row != this.row and otherCell.column != this.column:
             print("ERROR: Node not adjacent")
@@ -350,6 +350,36 @@ def checkSolved():
 #             island.connect(poppedIsland)
 #             island.connect(poppedIsland)
 
+frontier = PriorityQueue()
+distance = -1
+
+
+adjacentPairs = set()
+
+def populatePairs():
+    for island in islandList:
+        copy = island.adjacentIslands.copy()
+        while (len(copy) > 0):
+            a = set()
+            popped = copy.pop()
+            print("Found pair:")
+            island.printCoords()
+            popped.printCoords()
+            a.add(island)
+            a.add(popped)
+            b = frozenset(a)
+            adjacentPairs.add(b)  
+
+def calculateHeuristic():
+    for island in islandList:
+        distance += island.maxBridges
+
+def calculateChildren():
+    for pair in adjacentPairs:
+        pair.pop().connect(pair.pop)
+        frontier.put(calculateHeuristic(), )
+        
+        
 def findGuaranteedConnections():
     for island in islandList:
         if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
@@ -366,20 +396,14 @@ def findGuaranteedConnections():
                 island.connect(poppedIsland)
                 print("Connected Islands. \n")
 
-
-
-
 def findNextConnection():
     # Find solo islands
     findGuaranteedConnections()
     removeCompletedIslands()
-    #
-
 
 def setup():
     populateIslandList()
     populateAdjacencyList()
-
 
 ### Now let's populate the grid itself.
 
