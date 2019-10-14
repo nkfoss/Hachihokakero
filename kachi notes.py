@@ -29,6 +29,7 @@
 
 ####################################
 from Queue import PriorityQueue
+
 class gridCell:
 
     # Optional parameters come last. There are three general states that a gridCell
@@ -350,11 +351,15 @@ def checkSolved():
 #             island.connect(poppedIsland)
 #             island.connect(poppedIsland)
 
-frontier = PriorityQueue()
-distance = -1
-
-
+pqueue = PriorityQueue()
+frontier = set()
+distance = 0
 adjacentPairs = set()
+
+def calculateDistance():
+    global distance
+    for island in islandList:
+        distance += island.maxBridges
 
 def populatePairs():
     for island in islandList:
@@ -371,13 +376,24 @@ def populatePairs():
             adjacentPairs.add(b)  
 
 def calculateHeuristic():
+    x = 0
     for island in islandList:
-        distance += island.maxBridges
+        x += island.maxBridges
+    return distance-x
 
-def calculateChildren():
+def initializeFrontier():
     for pair in adjacentPairs:
-        pair.pop().connect(pair.pop)
-        frontier.put(calculateHeuristic(), )
+        a = list(pair)[0]
+        b = list(pair)[1]
+        pqueue.put([a, b], distance)
+
+def createChildren():
+    parent = pqueue.get()
+
+def search():
+    initializeFrontier()
+
+
         
         
 def findGuaranteedConnections():
@@ -404,6 +420,9 @@ def findNextConnection():
 def setup():
     populateIslandList()
     populateAdjacencyList()
+    populatePairs()
+    initializeFrontier()
+    calculateDistance()
 
 ### Now let's populate the grid itself.
 
