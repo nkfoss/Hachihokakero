@@ -353,13 +353,13 @@ def checkSolved():
 
 pqueue = PriorityQueue()
 frontier = set()
-distance = 0
+maxConnections = 0
 adjacentPairs = set()
 
-def calculateDistance():
-    global distance
+def calculateMaxConnections():
+    global maxConnections
     for island in islandList:
-        distance += island.maxBridges
+        maxConnections += island.maxBridges
 
 def populatePairs():
     for island in islandList:
@@ -376,26 +376,27 @@ def populatePairs():
             adjacentPairs.add(b)  
 
 def calculateHeuristic():
-    x = 0
-    for island in islandList:
-        x += island.maxBridges
-    return distance-x
+    return maxConnections
 
 def initializeFrontier():
     for pair in adjacentPairs:
         a = list(pair)[0]
         b = list(pair)[1]
-        pqueue.put([a, b], distance)
+        pqueue.put([a, b], calculateHeuristic())
 
 def createChildren():
-    parent = pqueue.get()
+    parent = frontier.get()
+    a = parent[0]
+    b = parent[1]
+    if (a in b.adjacentIslands):
+        a.connect(b)
+
+
+
 
 def search():
     initializeFrontier()
 
-
-        
-        
 def findGuaranteedConnections():
     for island in islandList:
         if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
@@ -421,8 +422,8 @@ def setup():
     populateIslandList()
     populateAdjacencyList()
     populatePairs()
+    calculateMaxConnections()
     initializeFrontier()
-    calculateDistance()
 
 ### Now let's populate the grid itself.
 
