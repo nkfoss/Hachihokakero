@@ -28,7 +28,7 @@
 # set 'n' rows/columns for a squre grid....(tbc)
 
 ####################################
-from Queue import PriorityQueue
+from queue import PriorityQueue
 
 class gridCell:
 
@@ -352,9 +352,11 @@ def checkSolved():
 #             island.connect(poppedIsland)
 
 pqueue = PriorityQueue()
-frontier = set()
 maxConnections = 0
 adjacentPairs = set()
+copies = [[]for i in range(100)]
+copyCounter = 0
+
 
 def calculateMaxConnections():
     global maxConnections
@@ -378,14 +380,28 @@ def populatePairs():
 def calculateHeuristic():
     return maxConnections
 
+def makeCopy(a, b):
+    global copyCounter
+    copies[copyCounter] = gridColumns.copy()
+    x = copies[copyCounter]
+    for i in range(0, 7): #This needs to change to n
+        for j in range(0, 7):
+            if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
+                a = x[i][j]
+            if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
+                b = x[i][j]
+    a.connect(b)
+    copyCounter += 1
+
 def initializeFrontier():
     for pair in adjacentPairs:
         a = list(pair)[0]
         b = list(pair)[1]
-        pqueue.put([a, b], calculateHeuristic())
+        makeCopy(a, b)
+        pqueue.put(calculateHeuristic(),[a, b])
 
 def createChildren():
-    parent = frontier.get()
+    parent = pqueue.get()
     a = parent[0]
     b = parent[1]
     if (a in b.adjacentIslands):
@@ -423,7 +439,9 @@ def setup():
     populateAdjacencyList()
     populatePairs()
     calculateMaxConnections()
+    initializeCopies()
     initializeFrontier()
+
 
 ### Now let's populate the grid itself.
 
@@ -459,3 +477,9 @@ j = gridCell(True, 6, 0, 4)
 k = gridCell(True, 6, 2, 2)
 l = gridCell(True, 6, 4, 1)
 m = gridCell(True, 6, 6, 2)
+
+
+def main():
+    setup()
+    if __name__== "__main__" :
+        main()
