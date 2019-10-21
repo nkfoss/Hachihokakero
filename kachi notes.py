@@ -442,7 +442,7 @@ def setup():
     populateAdjacencyList()
     populatePairs()
     calculateMaxConnections()
-    initializeCopies()
+    # initializeCopies()
     initializeFrontier()
 
 
