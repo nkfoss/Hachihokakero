@@ -122,6 +122,7 @@ class gridCell:
 
         # Make sure the island isn't full
         if this.maxBridges == 0:
+            print("Can't connect a full bridge")
             return False
 
         # Make sure they are adjacent
