@@ -386,10 +386,13 @@ def makeCopy(a, b):
     x = copies[copyCounter]
     for i in range(0, 7): #This needs to change to n
         for j in range(0, 7):
+            # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
+            # a and b should be stored as the copies.
             if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
                 a = x[i][j]
             if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
                 b = x[i][j]
+    # The nodes can then be connected and the copy can be stored finally.
     a.connect(b)
     copyCounter += 1
 
