@@ -1,3 +1,27 @@
+from queue import PriorityQueue
+
+# Maybe we can have gridColumns be a pointer to a boardstate, and then the functions won't
+# all have to change to iterate over the nested lists in copies[][]. 
+
+# Some global variables
+# --------------------------------------------------------------------- #
+islandList = set()
+pqueue = PriorityQueue()
+maxConnections = 0
+adjacentPairs = set()
+
+# Copies of the board for each state. It is set arbitrarily at 100.
+copies = [[]for i in range(100)]
+
+# A counter to allow us to place new boards in the first open list in copies.
+copyCounter = 0
+
+boardSize = 7
+
+# The grid that we place all of our cells into
+gridColumns = []
+
+
 #-------------------------------------------------------------------------------
 # Name:        Create algorithm to solve Hachihokakero
 # Purpose:
@@ -8,7 +32,6 @@
 # Copyright:   (c) fossp 2019
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
-
 
 ##### RANDOM NOTES
 
@@ -28,8 +51,6 @@
 # set 'n' rows/columns for a squre grid....(tbc)
 
 ####################################
-from queue import PriorityQueue
-
 class gridCell:
 
     # Optional parameters come last. There are three general states that a gridCell
@@ -92,9 +113,6 @@ class gridCell:
         else:
             isBridge = True
 
-
-
-
     def connect(this, otherCell):
     ######################################################################
     # Preliminary Checking
@@ -122,7 +140,6 @@ class gridCell:
 
         # Make sure the island isn't full
         if this.maxBridges == 0:
-            print("Can't connect a full island")
             return False
 
         # Make sure they are adjacent
@@ -284,7 +301,7 @@ class gridCell:
                 this.adjacentIslands.add(currIsland)
                 break
         # Below
-        for y in range(this.row+1, n):
+        for y in range(this.row+1, boardSize):
             if gridColumns[this.column][y].isIsland:
                 print("Found island below.")
                 print( str(this.column) + " " + str(y))
@@ -301,7 +318,7 @@ class gridCell:
                 this.adjacentIslands.add(currIsland)
                 break
         # Right
-        for x in range(this.column+1, n):
+        for x in range(this.column+1, boardSize):
             if gridColumns[x][this.row].isIsland:
                 print("Found island to the right.")
                 print( str(x) + " " + str(this.row))
@@ -309,8 +326,38 @@ class gridCell:
                 this.adjacentIslands.add(currIsland)
                 break
 
-islandList = set()
+### Now let's populate the grid itself.
 
+for i in range(0, boardSize):
+    gridColumns.append([])
+for i in range(0, boardSize):
+    for j in range(0, boardSize):
+        gridColumns[i].append(gridCell(False,
+        column = i, row=j)
+        )
+
+# Test Puzzle
+# a = gridCell(True, 0, 0, 2)
+# b = gridCell(True, 0, 2, 4)
+# c = gridCell(True, 0, 4, 4)
+# d = gridCell(True, 0, 6, 2)
+
+# This is our puzzle
+# --------------------------------------------------------------------- #
+a = gridCell(True, 0, 0, 2)
+b = gridCell(True, 0, 3, 4)
+c = gridCell(True, 0, 6, 3)
+d = gridCell(True, 2, 1, 2)
+e = gridCell(True, 2, 3, 6)
+f = gridCell(True, 2, 5, 1)
+g = gridCell(True, 4, 0, 5)
+h = gridCell(True, 4, 3, 5)
+i = gridCell(True, 4, 5, 1)
+j = gridCell(True, 6, 0, 4)
+k = gridCell(True, 6, 2, 2)
+l = gridCell(True, 6, 4, 1)
+m = gridCell(True, 6, 6, 2)
+# --------------------------------------------------------------------- #
 
 def printIslandList():
     for island in islandList:
@@ -326,6 +373,7 @@ def populateAdjacencyList():
     for island in islandList:
         island.getAdjacents()
 
+# Removes completed islands from the adjacency lists of other islands.
 def removeCompletedIslands():
     for island in islandList:
         if island.isCompleteIsland():
@@ -341,29 +389,15 @@ def checkSolved():
             return False
     return True
 
-
-# def findLonelyIslands():
+### Not really sure what the point of this is
+# def calculateMaxConnections():
+#     global maxConnections
 #     for island in islandList:
-#         if ( len(island.adjacentIslands) == 1):
-#             island.printCoords()
-#             poppedIsland = island.adjacentIslands.pop()
-#             print("Popped Island:")
-#             poppedIsland.printCoords()
-#             island.connect(poppedIsland)
-#             island.connect(poppedIsland)
+#         maxConnections += island.maxBridges
 
-pqueue = PriorityQueue()
-maxConnections = 0
-adjacentPairs = set()
-copies = [[]for i in range(100)]
-copyCounter = 0
-
-
-def calculateMaxConnections():
-    global maxConnections
-    for island in islandList:
-        maxConnections += island.maxBridges
-
+# Iterate over all of the islands and add pairs to the adjacentPairs set in order to 
+# make connections based on pairs of islands and not on individual islands.
+# Putting them in a set makes sure that no pair of islands exists twice
 def populatePairs():
     for island in islandList:
         copy = island.adjacentIslands.copy()
@@ -381,6 +415,7 @@ def populatePairs():
 def calculateHeuristic():
     return maxConnections
 
+# Make a copy of the board at a given state and save it in copies[][]
 def makeCopy(a, b):
     global copyCounter
     copies[copyCounter] = gridColumns.copy()
@@ -388,22 +423,25 @@ def makeCopy(a, b):
     for i in range(0, 7): #This needs to change to n
         for j in range(0, 7):
             # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
-            # a and b should be stored as the copies.
+            # a and b should be stored as the copies
             if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
                 a = x[i][j]
             if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
                 b = x[i][j]
-    # The nodes can then be connected and the copy can be stored finally.
+    # The nodes can then be connected and the copy can be stored finally
     a.connect(b)
     copyCounter += 1
 
+# Initialize copies[][] and place board states into the priority queue
 def initializeFrontier():
     for pair in adjacentPairs:
         a = list(pair)[0]
         b = list(pair)[1]
         makeCopy(a, b)
+        # Right now
         pqueue.put(calculateHeuristic(),[a, b])
 
+# Create children from the first state in the priority queue.
 def createChildren():
     parent = pqueue.get()
     a = parent[0]
@@ -411,12 +449,12 @@ def createChildren():
     if (a in b.adjacentIslands):
         a.connect(b)
 
-
-
-
+# This function should initialize our frontier and conduct the search, like the "grid search" example
 def search():
     initializeFrontier()
 
+# Finds all of the guaranteed connections in the board. This should probably return a boardstate and a small 
+# value for a heuristic, but right now it just connects islands in gridColumns.
 def findGuaranteedConnections():
     for island in islandList:
         if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
@@ -433,6 +471,7 @@ def findGuaranteedConnections():
                 island.connect(poppedIsland)
                 print("Connected Islands. \n")
 
+# The beginning of our heuristic function?
 def findNextConnection():
     # Find solo islands
     findGuaranteedConnections()
@@ -442,46 +481,9 @@ def setup():
     populateIslandList()
     populateAdjacencyList()
     populatePairs()
-    calculateMaxConnections()
+    # calculateMaxConnections()
     # initializeCopies()
     initializeFrontier()
-
-
-### Now let's populate the grid itself.
-
-n=7
-
-gridColumns = []
-
-for i in range(0, n):
-    gridColumns.append([])
-for i in range(0, n):
-    for j in range(0, n):
-        gridColumns[i].append(gridCell(False,
-        column = i, row=j)
-        )
-
-# Test Puzzle
-# a = gridCell(True, 0, 0, 2)
-# b = gridCell(True, 0, 2, 4)
-# c = gridCell(True, 0, 4, 4)
-# d = gridCell(True, 0, 6, 2)
-
-# This is our puzzle
-a = gridCell(True, 0, 0, 2)
-b = gridCell(True, 0, 3, 4)
-c = gridCell(True, 0, 6, 3)
-d = gridCell(True, 2, 1, 2)
-e = gridCell(True, 2, 3, 6)
-f = gridCell(True, 2, 5, 1)
-g = gridCell(True, 4, 0, 5)
-h = gridCell(True, 4, 3, 5)
-i = gridCell(True, 4, 5, 1)
-j = gridCell(True, 6, 0, 4)
-k = gridCell(True, 6, 2, 2)
-l = gridCell(True, 6, 4, 1)
-m = gridCell(True, 6, 6, 2)
-
 
 def main():
     setup()
