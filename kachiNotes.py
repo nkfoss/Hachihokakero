@@ -1,5 +1,5 @@
 from queue import PriorityQueue
-
+import copy
 # Maybe we can have gridColumns be a pointer to a boardstate, and then the functions won't
 # all have to change to iterate over the nested lists in copies[][]. 
 
@@ -65,6 +65,7 @@ class gridCell:
         if isIsland == True:
             this.isIsland = True
             this.maxBridges = maxBridges
+            this.initialMB = maxBridges
             this.adjacentIslands = adjacentIslands
             this.isBridge = False
             gridColumns[column][row] = this
@@ -383,17 +384,24 @@ def removeCompletedIslands():
                 if x.isCompleteIsland():
                     island.adjacentIslands.remove(x)
 
-def checkSolved():
+def checkSolved(island):
+    counter = 0
     for island in islandList:
-        if len(island.adjacentIslands) > 0:
+        counter += island.maxBridges
+    return(counter == 0)
+
+def checkIllegalMove(island):
+    for x in island.connectedIslands:
+        if x.isCompletedIsland():
+            return(checkIllegalMove(x))
+        else:
             return False
     return True
 
-### Not really sure what the point of this is
-# def calculateMaxConnections():
-#     global maxConnections
-#     for island in islandList:
-#         maxConnections += island.maxBridges
+def calculateMaxConnections():
+    global maxConnections
+    for island in islandList:
+        maxConnections += island.maxBridges
 
 # Iterate over all of the islands and add pairs to the adjacentPairs set in order to 
 # make connections based on pairs of islands and not on individual islands.
@@ -417,22 +425,24 @@ def calculateHeuristic():
 
 # Make a copy of the board at a given state and save it in copies[][]
 def makeCopy(a, b):
+    # copyCounter is so that we know which index of copies[][] to place the next copy of the board into.
     global copyCounter
-    copies[copyCounter] = gridColumns.copy()
+    # Make a copy of the board at the next index
+    copies[copyCounter] = copy.deepcopy(gridColumns)
     x = copies[copyCounter]
-    for i in range(0, 7): #This needs to change to n
-        for j in range(0, 7):
+    for i in range(0, boardSize):
+        for j in range(0, boardSize):
             # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
-            # a and b should be stored as the copies
+            # a and b should be stored as the copies.
             if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
-                a = x[i][j]
+                copyA = x[i][j]
             if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
-                b = x[i][j]
+                copyB = x[i][j]
     # The nodes can then be connected and the copy can be stored finally
-    a.connect(b)
+    copyA.connect(copyB)
     copyCounter += 1
 
-# Initialize copies[][] and place board states into the priority queue
+# Populate copies[][] and place board states into the priority queue.
 def initializeFrontier():
     for pair in adjacentPairs:
         a = list(pair)[0]
@@ -451,7 +461,8 @@ def createChildren():
 
 # This function should initialize our frontier and conduct the search, like the "grid search" example
 def search():
-    initializeFrontier()
+    if checkSolved():
+        print("The puzzle is solved!")
 
 # Finds all of the guaranteed connections in the board. This should probably return a boardstate and a small 
 # value for a heuristic, but right now it just connects islands in gridColumns.
@@ -481,8 +492,7 @@ def setup():
     populateIslandList()
     populateAdjacencyList()
     populatePairs()
-    # calculateMaxConnections()
-    # initializeCopies()
+    calculateMaxConnections()
     initializeFrontier()
 
 def main():
