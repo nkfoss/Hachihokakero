@@ -392,10 +392,13 @@ def checkSolved(island):
         counter += island.maxBridges
     return(counter == 0)
 
-def checkIllegalMove(island):
-    for x in island.connectedIslands:
-        if x.isCompletedIsland():
-            return(checkIllegalMove(x))
+def checkIllegalMove(island, CIL):
+    for x in CIL:
+        if x.isCompleteIsland():
+            CIL.remove(x)
+            xCIL = x.connectedIslands.copy()
+            xCIL.remove(island)
+            return(checkIllegalMove(x, xCIL))
         else:
             return False
     return True
