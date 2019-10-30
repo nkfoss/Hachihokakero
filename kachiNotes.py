@@ -1,7 +1,7 @@
 from queue import PriorityQueue
 import copy
 # Maybe we can have gridColumns be a pointer to a boardstate, and then the functions won't
-# all have to change to iterate over the nested lists in copies[][]. 
+# all have to change to iterate over the nested lists in frontier[][]. 
 
 # Some global variables
 # --------------------------------------------------------------------- #
@@ -10,10 +10,10 @@ pqueue = PriorityQueue()
 maxConnections = 0
 adjacentPairs = set()
 
-# Copies of the board for each state. It is set arbitrarily at 100.
-copies = [[]for i in range(100)]
+# frontier of the board for each state. It is set arbitrarily at 100.
+frontier = [[]for i in range(100)]
 
-# A counter to allow us to place new boards in the first open list in copies.
+# A counter to allow us to place new boards in the first open list in frontier.
 copyCounter = 0
 
 boardSize = 7
@@ -360,12 +360,14 @@ l = gridCell(True, 6, 4, 1)
 m = gridCell(True, 6, 6, 2)
 # --------------------------------------------------------------------- #
 
+
+
 def printIslandList():
     for island in islandList:
         island.printCoords()
 
-def populateIslandList():
-    for column in gridColumns:
+def populateIslandList(board):
+    for column in board:
         for cell in column:
              if cell.isIsland:
                  islandList.add(cell)
@@ -408,10 +410,10 @@ def calculateMaxConnections():
 # Putting them in a set makes sure that no pair of islands exists twice
 def populatePairs():
     for island in islandList:
-        copy = island.adjacentIslands.copy()
-        while (len(copy) > 0):
+        newAdjacent = copy.deepcopy(island.adjacentIslands)
+        while (len(newAdjacent) > 0):
             a = set()
-            popped = copy.pop()
+            popped = newAdjacent.pop()
             print("Found pair:")
             island.printCoords()
             popped.printCoords()
@@ -423,17 +425,17 @@ def populatePairs():
 def calculateHeuristic():
     return maxConnections
 
-# Make a copy of the board at a given state and save it in copies[][]
-def makeCopy(a, b):
-    # copyCounter is so that we know which index of copies[][] to place the next copy of the board into.
+# Make a copy of the board at a given state and save it in frontier[][]
+def makeChild(a, b):
+    # copyCounter is so that we know which index of frontier[][] to place the next copy of the board into.
     global copyCounter
     # Make a copy of the board at the next index
-    copies[copyCounter] = copy.deepcopy(gridColumns)
-    x = copies[copyCounter]
+    frontier[copyCounter] = copy.deepcopy(gridColumns)
+    x = frontier[copyCounter]
     for i in range(0, boardSize):
         for j in range(0, boardSize):
             # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
-            # a and b should be stored as the copies.
+            # a and b should be stored as the frontier.
             if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
                 copyA = x[i][j]
             if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
@@ -442,24 +444,11 @@ def makeCopy(a, b):
     copyA.connect(copyB)
     copyCounter += 1
 
-# Populate copies[][] and place board states into the priority queue.
+# Populate frontier[][] and place board states into the priority queue.
 def initializeFrontier():
-    for pair in adjacentPairs:
-        a = list(pair)[0]
-        b = list(pair)[1]
-        makeCopy(a, b)
-        # Right now
-        pqueue.put(calculateHeuristic(),[a, b])
+    makeChild(e, b)
 
-# Create children from the first state in the priority queue.
-def createChildren():
-    parent = pqueue.get()
-    a = parent[0]
-    b = parent[1]
-    if (a in b.adjacentIslands):
-        a.connect(b)
-
-# This function should initialize our frontier and conduct the search, like the "grid search" example
+# This function conduct the search, like the "grid search" example.
 def search():
     if checkSolved():
         print("The puzzle is solved!")
@@ -489,7 +478,7 @@ def findNextConnection():
     removeCompletedIslands()
 
 def setup():
-    populateIslandList()
+    populateIslandList(gridColumns)
     populateAdjacencyList()
     populatePairs()
     calculateMaxConnections()
