@@ -360,8 +360,6 @@ l = gridCell(True, 6, 4, 1)
 m = gridCell(True, 6, 6, 2)
 # --------------------------------------------------------------------- #
 
-
-
 def printIslandList():
     for island in islandList:
         island.printCoords()
@@ -423,9 +421,19 @@ def populatePairs():
             a.add(island)
             a.add(popped)
             b = frozenset(a)
-            adjacentPairs.add(b)  
+            adjacentPairs.add(b)
 
-def calculateHeuristic():
+def calculateHeuristic(board):
+    scores = PriorityQueue
+    populateIslandList(board)
+    populatePairs()
+    for pair in adjacentPairs:
+        for island in pair:
+            numAdj = len(island.adjacentIslands)
+            weight = island.maxBridges
+            heuristic =+ numAdj + weight
+        scores.push(heuristic, pair)
+
     return maxConnections
 
 # Make a copy of the board at a given state and save it in frontier[][]
