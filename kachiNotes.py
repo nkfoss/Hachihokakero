@@ -6,15 +6,9 @@ import copy
 # Some global variables
 # --------------------------------------------------------------------- #
 islandList = set()
-pqueue = PriorityQueue()
+frontier = []
 maxConnections = 0
 adjacentPairs = set()
-
-# frontier of the board for each state. It is set arbitrarily at 100.
-frontier = [[]for i in range(100)]
-
-# A counter to allow us to place new boards in the first open list in frontier.
-copyCounter = 0
 
 boardSize = 7
 
@@ -436,6 +430,9 @@ def calculateMaxConnections():
     for island in islandList:
         maxConnections += island.maxBridges
 
+def sortFrontier():
+    global frontier
+    frontier = sorted(frontier, key=lambda tup: tup[1])
 # Iterate over all of the islands and add pairs to the adjacentPairs set in order to 
 # make connections based on pairs of islands and not on individual islands.
 # Putting them in a set makes sure that no pair of islands exists twice
@@ -457,51 +454,55 @@ def populatePairs():
 # Calculate the "value" of each available move in the board.
 def calculateHeuristic(board):
     print("Calculating Heuristic:")
-    scores = PriorityQueue()
+    scores = []
     print("Populating islandList:")
     populateIslandList(board)
     print("Populating pairs:")
     populatePairs()
     print("Creating scores:")
     for pair in adjacentPairs:
+        print(pair)
         for island in pair:
             if len(island.adjacentIslands) > 0:
                 numAdj = len(island.adjacentIslands)
                 weight = island.maxBridges
                 heuristic =+ numAdj + weight
-        scores.put(heuristic, pair)
-    return scores
+        scores.append([pair, heuristic])
+    return sorted(scores, key=lambda tup: tup[1])
 
-# Make a copy of the board at a given state and save it in frontier[][]
-def makeChild(pair, board):
-    # copyCounter is so that we know which index of frontier[][] to place the next copy of the board into.
-    print("Making Child:")
-    global copyCounter
-    # Make a copy of the board at the next index
-    frontier[copyCounter] = copy.deepcopy(board)
-    x = frontier[copyCounter]
-    for i in range(0, boardSize):
-        for j in range(0, boardSize):
-            # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
-            # a and b should be stored as the frontier.
-            if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
-                copyA = x[i][j]
-            if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
-                copyB = x[i][j]
-    print("A: ", copyA)
-    print("A row: ", copyA.row, "\n",
-     "A column: ", copyA.column)
-    print("B ", copyB)
-    print("B row: ", copyB.row, "\n",
-    "B column: ", copyB.column)
-    # The nodes can then be connected and the copy can be stored finally
-    copyA.connect(copyB, x)
-    copyCounter += 1
+# Make a copy of the board at a given state and save it in frontier
+def makeChildren(scores, board):
+    print("Making Children:")
+    # Make a copy of the board 
+    x = copy.deepcopy(board)
+    while (len(scores) > 0):
+        y = scores.pop(0)
+        z = list(y[0])
+        a = z[0]
+        b = z[1]
+        for i in range(0, boardSize):
+            for j in range(0, boardSize):
+                # Each node at (i, j) is equal to a, b, or neither. By the time each row and column has been iterated over,
+                # a and b should be stored as the frontier.
+                if ((x[i][j].column == a.column) & (x[i][j].row ==  a.row)):
+                    copyA = x[i][j]
+                if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
+                    copyB = x[i][j]
+        print("A: ", copyA)
+        print("A row: ", copyA.row, "\n",
+        "A column: ", copyA.column)
+        print("B ", copyB)
+        print("B row: ", copyB.row, "\n",
+        "B column: ", copyB.column)
+        # The nodes can then be connected and the copy can be stored finally
+        copyA.connect(copyB, x)
+        frontier.append([copy.deepcopy(x), y[1]])
+    sortFrontier()
 
 # Populate frontier[][] and place board states into the priority queue.
 def initializeFrontier():
     print("Initializing the frontier:")
-    makeChild(calculateHeuristic(gridColumns).get(), gridColumns)
+    makeChildren(calculateHeuristic(gridColumns), gridColumns)
 
 # This function conducts the search, like the "grid search" example.
 def search():
