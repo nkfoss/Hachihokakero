@@ -59,67 +59,67 @@ class gridCell:
     # between two gridCells and block other connections from crossing. If a grid
     # cell is NEITHER, than it can possibly become a bridge.
 
-    def __init__ (this, isIsland, column, row,
-    maxBridges=0, adjacentIslands = set(), isBridge=False):
+    def __init__ (self, isIsland, column, row,
+    maxBridges=0, adjacentIslands = set(), isBridge=False, board=gridColumns):
 
         if isIsland == True:
-            this.isIsland = True
-            this.maxBridges = maxBridges
-            this.initialMB = maxBridges
-            this.adjacentIslands = adjacentIslands
-            this.isBridge = False
-            gridColumns[column][row] = this
+            self.isIsland = True
+            self.maxBridges = maxBridges
+            self.initialMB = maxBridges
+            self.adjacentIslands = adjacentIslands
+            self.isBridge = False
+            board[column][row] = self
         else:
-            this.isIsland = False
-            this.maxBridges = maxBridges
-            this.adjacentIslands = adjacentIslands
+            self.isIsland = False
+            self.maxBridges = maxBridges
+            self.adjacentIslands = adjacentIslands
 
-        this.isBridge = isBridge
-        this.adjacentIslands = set()
-        this.connectedIslands = []
-        this.column = column
-        this.row = row
+        self.isBridge = isBridge
+        self.adjacentIslands = set()
+        self.connectedIslands = []
+        self.column = column
+        self.row = row
 
-    def create(this, maxBridges):
-        this.isIsland = True
-        this.maxBridges = maxBridges
+    def create(self, maxBridges):
+        self.isIsland = True
+        self.maxBridges = maxBridges
 
-    def printCoords(this):
-        print(str(this.column)+ " " + str(this.row))
+    def printCoords(self):
+        print(str(self.column)+ " " + str(self.row))
 
-    def printAdjacents(this):
-        for island in this.adjacentIslands:
+    def printAdjacents(self):
+        for island in self.adjacentIslands:
             island.printCoords()
 
-    def setIsland(this, maxBridges):
-        this.maxBridges = maxBridges
-        this.isIsland = True
+    def setIsland(self, maxBridges):
+        self.maxBridges = maxBridges
+        self.isIsland = True
 
-    def currBridges(this):
-        return len(this.connectedIslands)
+    def currBridges(self):
+        return len(self.connectedIslands)
 
-    def isCompleteIsland(this):
-        if this.maxBridges == 0:
+    def isCompleteIsland(self):
+        if self.maxBridges == 0:
             return True
         else:
             return False
 
-    def makeBridge():
-        if isIsland == True:
+    def makeBridge(self):
+        if self.isIsland == True:
             print("Can't create bridge. This is an island")
             return False
-        if isBridge == True:
+        if self.isBridge == True:
             print("This is already a bridge")
             return False
         else:
-            isBridge = True
+            self.isBridge = True
 
-    def connect(this, otherCell):
+    def connect(self, otherCell, board):
     ######################################################################
     # Preliminary Checking
 
         # Make sure the subject is an island
-        if (this.isIsland == False):
+        if (self.isIsland == False):
             print("Subject is not an island.")
             return False
 
@@ -129,34 +129,34 @@ class gridCell:
             return False
 
         # Make sure island doesn't connect to itself
-        if (this == otherCell):
+        if (self == otherCell):
             print("Can't connect island to itself.")
             return False
 
         # Make sure we don't exceeed max connections
-        if (this.connectedIslands.count(otherCell) >= 2):
+        if (self.connectedIslands.count(otherCell) >= 2):
             print("Can't connect again. Already have two connections.")
             otherCell.printCoords()
             return False
 
         # Make sure the island isn't full
-        if this.maxBridges == 0:
+        if self.maxBridges == 0:
             return False
 
         # Make sure they are adjacent
-        if otherCell.row != this.row and otherCell.column != this.column:
+        if otherCell.row != self.row and otherCell.column != self.column:
             print("ERROR: Node not adjacent")
-            print( "Subject Row: " + str(this.row) + ". Column: " + str(this.column) )
+            print( "Subject Row: " + str(self.row) + ". Column: " + str(self.column) )
             print( "Target  Row: " + str(otherCell.row) + ". Column: " + str(otherCell.column) )
             return False
 
         # If they're already connected once, go ahead do it again.
-        if (this.connectedIslands.count(otherCell) == 1):
+        if (self.connectedIslands.count(otherCell) == 1):
 
-            otherCell.connectedIslands.append(this)
+            otherCell.connectedIslands.append(self)
             otherCell.maxBridges = otherCell.maxBridges - 1
-            this.connectedIslands.append(otherCell)
-            this.maxBridges = this.maxBridges - 1
+            self.connectedIslands.append(otherCell)
+            self.maxBridges = self.maxBridges - 1
 
             print("Added a second connection.")
             return True
@@ -170,14 +170,14 @@ class gridCell:
         toBeBridges = []
 
         # If they are adjacent by the same row...
-        if otherCell.row == this.row:
+        if otherCell.row == self.row:
             print(" --- same row --- ")
-            smallerColumn = min(this.column, otherCell.column)
-            largerColumn = max(this.column, otherCell.column)
+            smallerColumn = min(self.column, otherCell.column)
+            largerColumn = max(self.column, otherCell.column)
 
             # Now check nodes between them for obstacles
             for column in range(smallerColumn+1, largerColumn):
-                currCell = gridColumns[column][this.row]
+                currCell = board[column][self.row]
                 # print(str(currCell.column) + " " + str(currCell.row) )
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
@@ -188,14 +188,14 @@ class gridCell:
                     toBeBridges.append(currCell)
 
         # If they are adjacent by the same COLUMN...
-        if otherCell.column == this.column:
+        if otherCell.column == self.column:
             print(" --- same column --- ")
-            smallerRow = min(this.row, otherCell.row)
-            largerRow = max(this.row, otherCell.row)
+            smallerRow = min(self.row, otherCell.row)
+            largerRow = max(self.row, otherCell.row)
 
             # Now check nodes between them for obstacles
             for row in range(smallerRow+1, largerRow):
-                currCell = gridColumns[this.column][row]
+                currCell = board[self.column][row]
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
                     print("currCell is bridge: " + str(currCell.isBridge))
@@ -209,46 +209,46 @@ class gridCell:
             cell.isBridge = True
 
         # Now add each island to the other's connect list.
-        otherCell.connectedIslands.append(this)
+        otherCell.connectedIslands.append(self)
         otherCell.maxBridges = otherCell.maxBridges - 1
 
-        this.connectedIslands.append(otherCell)
-        this.maxBridges = this.maxBridges - 1
+        self.connectedIslands.append(otherCell)
+        self.maxBridges = self.maxBridges - 1
 
         print("Connect succesful")
         return True
 
 
 
-    def disconnect(this, otherCell):
+    def disconnect(self, otherCell, board):
     ########################################################################
 
         # They are not connected at all.
-        if (this.connectedIslands.count(otherCell) < 1):
+        if (self.connectedIslands.count(otherCell) < 1):
             print("They aren't even connected.")
             return False
 
         # They are connected once.
-        if (this.connectedIslands.count(otherCell) == 2):
+        if (self.connectedIslands.count(otherCell) == 2):
             print("Disconnect success. 1 left.")
 
-            this.connectedIslands.remove(otherCell)
-            this.maxBridges = this.maxBridges + 1
+            self.connectedIslands.remove(otherCell)
+            self.maxBridges = self.maxBridges + 1
 
-            otherCell.connectedIslands.remove(this)
+            otherCell.connectedIslands.remove(self)
             otherCell.maxBridges = otherCell.maxBridges + 1
             return True
 
         # They are connected twice.
-        # This case requires turn cells from bridges back into empty.
-        if (this.connectedIslands.count(otherCell) == 1):
+        # self case requires turn cells from bridges back into empty.
+        if (self.connectedIslands.count(otherCell) == 1):
 
-            if otherCell.row == this.row:
-                smallerColumn = min(this.column, otherCell.column)
-                largerColumn = max(this.column, otherCell.column)
+            if otherCell.row == self.row:
+                smallerColumn = min(self.column, otherCell.column)
+                largerColumn = max(self.column, otherCell.column)
                  # Now check nodes between them for obstacles
                 for column in range(smallerColumn+1, largerColumn):
-                    currCell = gridColumns[column][this.row]
+                    currCell = board[column][self.row]
                     print(str(currCell.column) + " " + str(currCell.row) )
                     if (currCell.isBridge):
                         currCell.isBridge = False
@@ -258,12 +258,12 @@ class gridCell:
                         print("Is it a bridge? " + currCell.isBridge)
                         print("Is it an island? " + currCell.isIsland)
 
-            if otherCell.column == this.column:
-                smallerRow = min(this.row, otherCell.row)
-                largerRow = max(this.row, otherCell.row)
+            if otherCell.column == self.column:
+                smallerRow = min(self.row, otherCell.row)
+                largerRow = max(self.row, otherCell.row)
                 # Now check nodes between them for obstacles
                 for row in range(smallerRow+1, largerRow):
-                    currCell = gridColumns[this.column][row]
+                    currCell = board[self.column][row]
                     print(str(currCell.column) + " " + str(currCell.row) )
                     if (currCell.isBridge):
                         currCell.isBridge = False
@@ -274,10 +274,10 @@ class gridCell:
                         print("Is it an island? " + currCell.isIsland)
 
         print("Disconnect success. 0 left.")
-        this.connectedIslands.remove(otherCell)
-        this.maxBridges = this.maxBridges + 1
+        self.connectedIslands.remove(otherCell)
+        self.maxBridges = self.maxBridges + 1
 
-        otherCell.connectedIslands.remove(this)
+        otherCell.connectedIslands.remove(self)
         otherCell.maxBridges = otherCell.maxBridges + 1
         return True
 
@@ -291,52 +291,80 @@ class gridCell:
         else:
             isBridge = True
 
-    def getAdjacents(this):
+    def getAdjacents(self, board):
         # Find adjacent islands in same column
         # Above
-        for y in range(this.row-1, -1, -1):
-            if gridColumns[this.column][y].isIsland:
+        for y in range(self.row-1, -1, -1):
+            if board[self.column][y].isIsland:
                 print("Found island above.")
-                print( str(this.column) + " " + str(y))
-                currIsland = gridColumns[this.column][y]
-                this.adjacentIslands.add(currIsland)
+                print( str(self.column) + " " + str(y))
+                currIsland = board[self.column][y]
+                self.adjacentIslands.add(currIsland)
                 break
         # Below
-        for y in range(this.row+1, boardSize):
-            if gridColumns[this.column][y].isIsland:
+        for y in range(self.row+1, boardSize):
+            if board[self.column][y].isIsland:
                 print("Found island below.")
-                print( str(this.column) + " " + str(y))
-                currIsland = gridColumns[this.column][y]
-                this.adjacentIslands.add(currIsland)
+                print( str(self.column) + " " + str(y))
+                currIsland = board[self.column][y]
+                self.adjacentIslands.add(currIsland)
                 break
 
         # Left
-        for x in range(this.column-1, -1, -1):
-            if gridColumns[x][this.row].isIsland:
+        for x in range(self.column-1, -1, -1):
+            if board[x][self.row].isIsland:
                 print("Found island to the left.")
-                print( str(x) + " " + str(this.row))
-                currIsland = gridColumns[x][this.row]
-                this.adjacentIslands.add(currIsland)
+                print( str(x) + " " + str(self.row))
+                currIsland = board[x][self.row]
+                self.adjacentIslands.add(currIsland)
                 break
         # Right
-        for x in range(this.column+1, boardSize):
-            if gridColumns[x][this.row].isIsland:
+        for x in range(self.column+1, boardSize):
+            if board[x][self.row].isIsland:
                 print("Found island to the right.")
-                print( str(x) + " " + str(this.row))
-                currIsland = gridColumns[x][this.row]
-                this.adjacentIslands.add(currIsland)
+                print( str(x) + " " + str(self.row))
+                currIsland = board[x][self.row]
+                self.adjacentIslands.add(currIsland)
                 break
 
 ### Now let's populate the grid itself.
+def populateGrid():
+    global a
+    global b
+    global c
+    global d
+    global e
+    global f
+    global g
+    global h
+    global i
+    global j
+    global k
+    global l
+    global m
+    gridColumns.clear()
+    for i in range(0, boardSize):
+        gridColumns.append([])
+    for i in range(0, boardSize):
+        for j in range(0, boardSize):
+            gridColumns[i].append(gridCell(False,
+            column = i, row=j)
+            )
+    a = gridCell(True, 0, 0, 2)
+    b = gridCell(True, 0, 3, 4)
+    c = gridCell(True, 0, 6, 3)
+    d = gridCell(True, 2, 1, 2)
+    e = gridCell(True, 2, 3, 6)
+    f = gridCell(True, 2, 5, 1)
+    g = gridCell(True, 4, 0, 5)
+    h = gridCell(True, 4, 3, 5)
+    i = gridCell(True, 4, 5, 1)
+    j = gridCell(True, 6, 0, 4)
+    k = gridCell(True, 6, 2, 2)
+    l = gridCell(True, 6, 4, 1)
+    m = gridCell(True, 6, 6, 2)
 
-for i in range(0, boardSize):
-    gridColumns.append([])
-for i in range(0, boardSize):
-    for j in range(0, boardSize):
-        gridColumns[i].append(gridCell(False,
-        column = i, row=j)
-        )
-
+populateGrid()
 # Test Puzzle
 # a = gridCell(True, 0, 0, 2)
 # b = gridCell(True, 0, 2, 4)
@@ -372,9 +400,9 @@ def populateIslandList(board):
              if cell.isIsland:
                  islandList.add(cell)
 
-def populateAdjacencyList():
+def populateAdjacencyList(board):
     for island in islandList:
-        island.getAdjacents()
+        island.getAdjacents(board)
 
 # Removes completed islands from the adjacency lists of other islands.
 def removeCompletedIslands():
@@ -430,8 +458,11 @@ def populatePairs():
 def calculateHeuristic(board):
     print("Calculating Heuristic:")
     scores = PriorityQueue()
+    print("Populating islandList:")
     populateIslandList(board)
+    print("Populating pairs:")
     populatePairs()
+    print("Creating scores:")
     for pair in adjacentPairs:
         for island in pair:
             if len(island.adjacentIslands) > 0:
@@ -442,12 +473,12 @@ def calculateHeuristic(board):
     return scores
 
 # Make a copy of the board at a given state and save it in frontier[][]
-def makeChild(pair):
+def makeChild(pair, board):
     # copyCounter is so that we know which index of frontier[][] to place the next copy of the board into.
     print("Making Child:")
     global copyCounter
     # Make a copy of the board at the next index
-    frontier[copyCounter] = copy.deepcopy(gridColumns)
+    frontier[copyCounter] = copy.deepcopy(board)
     x = frontier[copyCounter]
     for i in range(0, boardSize):
         for j in range(0, boardSize):
@@ -457,18 +488,20 @@ def makeChild(pair):
                 copyA = x[i][j]
             if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
                 copyB = x[i][j]
+    print("A: ", copyA)
     print("A row: ", copyA.row, "\n",
      "A column: ", copyA.column)
+    print("B ", copyB)
     print("B row: ", copyB.row, "\n",
     "B column: ", copyB.column)
     # The nodes can then be connected and the copy can be stored finally
-    copyA.connect(copyB)
+    copyA.connect(copyB, x)
     copyCounter += 1
 
 # Populate frontier[][] and place board states into the priority queue.
 def initializeFrontier():
     print("Initializing the frontier:")
-    makeChild(calculateHeuristic(gridColumns).get())
+    makeChild(calculateHeuristic(gridColumns).get(), gridColumns)
 
 # This function conducts the search, like the "grid search" example.
 def search():
@@ -477,31 +510,32 @@ def search():
 
 # Finds all of the guaranteed connections in the board. This should probably return a boardstate and a small 
 # value for a heuristic, but right now it just connects islands in gridColumns.
-def findGuaranteedConnections():
-    for island in islandList:
-        if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
-            print("-------------------------------------------------")
-            print("         Attempting to Connect Islands         ")
-            print("Island Found: ")
-            island.printCoords()
-            print("Connecting Islands.")
-            while (len(island.adjacentIslands) > 0):
-                poppedIsland = island.adjacentIslands.pop()
-                print("Popped Island:")
-                poppedIsland.printCoords()
-                island.connect(poppedIsland)
-                island.connect(poppedIsland)
-                print("Connected Islands. \n")
+# def findGuaranteedConnections():
+#     for island in islandList:
+#         if ((len(island.adjacentIslands) > 0) and (len(island.adjacentIslands) == 1 or len(island.adjacentIslands) == island.maxBridges/2)):
+#             print("-------------------------------------------------")
+#             print("         Attempting to Connect Islands         ")
+#             print("Island Found: ")
+#             island.printCoords()
+#             print("Connecting Islands.")
+#             while (len(island.adjacentIslands) > 0):
+#                 poppedIsland = island.adjacentIslands.pop()
+#                 print("Popped Island:")
+#                 poppedIsland.printCoords()
+#                 island.connect(poppedIsland)
+#                 island.connect(poppedIsland)
+#                 print("Connected Islands. \n")
 
 # The beginning of our heuristic function?
 def findNextConnection():
     # Find solo islands
-    findGuaranteedConnections()
+    # findGuaranteedConnections()
     removeCompletedIslands()
 
 def setup():
+    populateGrid()
     populateIslandList(gridColumns)
-    populateAdjacencyList()
+    populateAdjacencyList(gridColumns)
     populatePairs()
     calculateMaxConnections()
     initializeFrontier()
