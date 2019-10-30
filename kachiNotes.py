@@ -410,10 +410,10 @@ def calculateMaxConnections():
 # Putting them in a set makes sure that no pair of islands exists twice
 def populatePairs():
     for island in islandList:
-        newAdjacent = copy.deepcopy(island.adjacentIslands)
-        while (len(newAdjacent) > 0):
+        copy = island.adjacentIslands.copy()
+        while (len(copy) > 0):
             a = set()
-            popped = newAdjacent.pop()
+            popped = copy.pop()
             print("Found pair:")
             island.printCoords()
             popped.printCoords()
