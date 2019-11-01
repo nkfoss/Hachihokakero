@@ -81,7 +81,7 @@ class gridCell:
         self.maxBridges = maxBridges
 
     def printCoords(self):
-        print(str(self.column)+ " " + str(self.row))
+        return(str(self.column)+ " " + str(self.row))
 
     def printAdjacents(self):
         for island in self.adjacentIslands:
@@ -130,13 +130,14 @@ class gridCell:
             return False
 
         # Make sure we don't exceeed max connections
-        if (self.connectedIslands.count(otherCell) >= 2):
+        if (self.connectedIslands.count(otherCell) > 1):
             print("Can't connect again. Already have two connections.")
+            self.printCoords()
             otherCell.printCoords()
             return False
 
         # Make sure the island isn't full
-        if self.maxBridges == 0:
+        if self.maxBridges <= 0:
             return False
 
         # Make sure they are adjacent
@@ -147,7 +148,7 @@ class gridCell:
             return False
 
         # If they're already connected once, go ahead do it again.
-        if (self.connectedIslands.count(otherCell) == 1):
+        if (self.connectedIslands.count(otherCell) == 1 and otherCell.maxBridges > 0):
 
             otherCell.connectedIslands.append(self)
             otherCell.maxBridges = otherCell.maxBridges - 1
@@ -177,6 +178,7 @@ class gridCell:
                 # print(str(currCell.column) + " " + str(currCell.row) )
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
+                    print(currCell.column, currCell.row)
                     print("currCell is bridge: " + str(currCell.isBridge))
                     print("currCell is island: " + str(currCell.isIsland))
                     return False
@@ -194,6 +196,7 @@ class gridCell:
                 currCell = board[self.column][row]
                 if (currCell.isIsland or currCell.isBridge):
                     print("we hit something. can't connect")
+                    print(currCell.column, currCell.row)
                     print("currCell is bridge: " + str(currCell.isBridge))
                     print("currCell is island: " + str(currCell.isIsland))
                     return False
@@ -205,14 +208,15 @@ class gridCell:
             cell.isBridge = True
 
         # Now add each island to the other's connect list.
-        otherCell.connectedIslands.append(self)
-        otherCell.maxBridges = otherCell.maxBridges - 1
+        if otherCell.maxBridges > 0:
+            otherCell.connectedIslands.append(self)
+            otherCell.maxBridges = otherCell.maxBridges - 1
 
-        self.connectedIslands.append(otherCell)
-        self.maxBridges = self.maxBridges - 1
+            self.connectedIslands.append(otherCell)
+            self.maxBridges = self.maxBridges - 1
 
-        print("Connect succesful")
-        return True
+            print("Connect succesful")
+            return True
 
 
 
@@ -291,15 +295,16 @@ class gridCell:
         # Find adjacent islands in same column
         # Above
         for y in range(self.row-1, -1, -1):
-            if board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0):
+            if (board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0)):
                 print("Found island above.")
                 print( str(self.column) + " " + str(y))
                 currIsland = board[self.column][y]
+                print(currIsland.maxBridges)
                 self.adjacentIslands.add(currIsland)
                 break
         # Below
         for y in range(self.row+1, boardSize):
-            if board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0):
+            if (board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0)):
                 print("Found island below.")
                 print( str(self.column) + " " + str(y))
                 currIsland = board[self.column][y]
@@ -308,7 +313,7 @@ class gridCell:
 
         # Left
         for x in range(self.column-1, -1, -1):
-            if board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0):
+            if (board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0)):
                 print("Found island to the left.")
                 print( str(x) + " " + str(self.row))
                 currIsland = board[x][self.row]
@@ -316,7 +321,7 @@ class gridCell:
                 break
         # Right
         for x in range(self.column+1, boardSize):
-            if board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0):
+            if (board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0)):
                 print("Found island to the right.")
                 print( str(x) + " " + str(self.row))
                 currIsland = board[x][self.row]
@@ -384,6 +389,15 @@ l = gridCell(True, 6, 4, 1)
 m = gridCell(True, 6, 6, 2)
 # --------------------------------------------------------------------- #
 
+def printMaxBridges():
+    maxBList = []
+    for island in islandList:
+        x = island.printCoords()
+        maxBList.append([x, island.maxBridges])
+        # print(island.printCoords() + ": ")
+        # print(island.maxBridges)
+    print(maxBList)
+
 def printIslandList():
     for island in islandList:
         island.printCoords()
@@ -398,7 +412,8 @@ def populateIslandList(board):
 
 def populateAdjacencyList(board):
     for island in islandList:
-        island.getAdjacents(board)
+        if island.maxBridges > 0:
+            island.getAdjacents(board)
 
 # Removes completed islands from the adjacency lists of other islands.
 def removeCompletedIslands():
@@ -525,6 +540,20 @@ def initializeFrontier():
     print("Initializing the frontier:")
     makeChildren(calculateHeuristic(gridColumns), gridColumns, [0,0])
 
+
+def nearlySolve():
+    frontier[0][0][0][0].connect(frontier[0][0][0][3], frontier[0][0])
+    frontier[0][0][0][6].connect(frontier[0][0][0][3], frontier[0][0])
+    frontier[0][0][0][6].connect(frontier[0][0][0][3], frontier[0][0])
+    frontier[0][0][0][6].connect(frontier[0][0][6][6], frontier[0][0])
+    frontier[0][0][6][4].connect(frontier[0][0][6][6], frontier[0][0])
+    frontier[0][0][0][0].connect(frontier[0][0][4][0], frontier[0][0])
+    frontier[0][0][6][0].connect(frontier[0][0][4][0], frontier[0][0])
+    frontier[0][0][6][0].connect(frontier[0][0][4][0], frontier[0][0])
+    frontier[0][0][6][0].connect(frontier[0][0][6][2], frontier[0][0])
+    frontier[0][0][6][0].connect(frontier[0][0][6][2], frontier[0][0])
+    populateIslandList(frontier[0][0])
+
 # This function conducts the search, like the "grid search" example.
 def search(runs):
     global step
@@ -534,8 +563,8 @@ def search(runs):
             break    
         makeChildren(calculateHeuristic(frontier[0][0]), frontier[0][0], frontier[0][1])
         i = i + 1
-        step = step+1
-        print("This was run #",i+1)
+        step = step + 1
+        print("This was run #",i)
         print(maxH)
 
 # Finds all of the guaranteed connections in the board. This should probably return a boardstate and a small 
@@ -563,6 +592,9 @@ def findNextConnection():
     removeCompletedIslands()
 
 def setup():
+    global step
+    step = 0
+    frontier.clear()
     populateGrid()
     populateIslandList(gridColumns)
     populateAdjacencyList(gridColumns)
