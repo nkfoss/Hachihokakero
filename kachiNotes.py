@@ -289,7 +289,7 @@ class gridCell:
         # Find adjacent islands in same column
         # Above
         for y in range(self.row-1, -1, -1):
-            if board[self.column][y].isIsland:
+            if board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0):
                 print("Found island above.")
                 print( str(self.column) + " " + str(y))
                 currIsland = board[self.column][y]
@@ -297,7 +297,7 @@ class gridCell:
                 break
         # Below
         for y in range(self.row+1, boardSize):
-            if board[self.column][y].isIsland:
+            if board[self.column][y].isIsland and (board[self.column][y].maxBridges > 0):
                 print("Found island below.")
                 print( str(self.column) + " " + str(y))
                 currIsland = board[self.column][y]
@@ -306,7 +306,7 @@ class gridCell:
 
         # Left
         for x in range(self.column-1, -1, -1):
-            if board[x][self.row].isIsland:
+            if board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0):
                 print("Found island to the left.")
                 print( str(x) + " " + str(self.row))
                 currIsland = board[x][self.row]
@@ -314,7 +314,7 @@ class gridCell:
                 break
         # Right
         for x in range(self.column+1, boardSize):
-            if board[x][self.row].isIsland:
+            if board[x][self.row].isIsland and (board[x][self.row].maxBridges > 0):
                 print("Found island to the right.")
                 print( str(x) + " " + str(self.row))
                 currIsland = board[x][self.row]
@@ -408,19 +408,23 @@ def removeCompletedIslands():
                 if x.isCompleteIsland():
                     island.adjacentIslands.remove(x)
 
-def checkSolved(island):
+def checkSolved(board):
+    populateIslandList(board)
     counter = 0
     for island in islandList:
         counter += island.maxBridges
+    # print(counter)
     return(counter == 0)
 
-def checkIllegalMove(island, CIL):
+def checkIllegalMove(island, board):
+    boardCopy = copy.deepcopy(board)
+    islandInBoard = board[island.column][island.row]
+    CIL = islandInBoard.connectedIslands
     for x in CIL:
         if x.isCompleteIsland():
             CIL.remove(x)
-            xCIL = x.connectedIslands.copy()
-            xCIL.remove(island)
-            return(checkIllegalMove(x, xCIL))
+            x.connectedIslands.remove(islandInBoard)
+            return(checkIllegalMove(x, board))
         else:
             return False
     return True
@@ -433,19 +437,21 @@ def calculateMaxConnections():
 def sortFrontier():
     global frontier
     frontier = sorted(frontier, key=lambda tup: tup[1])
+
 # Iterate over all of the islands and add pairs to the adjacentPairs set in order to 
 # make connections based on pairs of islands and not on individual islands.
 # Putting them in a set makes sure that no pair of islands exists twice
-def populatePairs():
+def populatePairs(board):
     adjacentPairs.clear()
+    populateAdjacencyList(board)
     for island in islandList:
         copy = island.adjacentIslands.copy()
         while (len(copy) > 0):
             a = set()
             popped = copy.pop()
-            print("Found pair:")
-            island.printCoords()
-            popped.printCoords()
+            # print("Found pair:")
+            # island.printCoords()
+            # popped.printCoords()
             a.add(island)
             a.add(popped)
             b = frozenset(a)
@@ -458,20 +464,24 @@ def calculateHeuristic(board):
     print("Populating islandList:")
     populateIslandList(board)
     print("Populating pairs:")
-    populatePairs()
+    populatePairs(board)
     print("Creating scores:")
     for pair in adjacentPairs:
-        print(pair)
+        # print(pair)
+        heuristic = 0
         for island in pair:
             if len(island.adjacentIslands) > 0:
                 numAdj = len(island.adjacentIslands)
                 weight = island.maxBridges
                 heuristic =+ numAdj + weight
         scores.append([pair, heuristic])
+    # This sorts the scores[[a, b]] by their b, much in the way a priority queue would
     return sorted(scores, key=lambda tup: tup[1])
 
+maxH = 0
 # Make a copy of the board at a given state and save it in frontier
-def makeChildren(scores, board):
+def makeChildren(scores, board, prevHeuristic):
+    global maxH
     print("Making Children:")
     # Make a copy of the board 
     x = copy.deepcopy(board)
@@ -488,26 +498,39 @@ def makeChildren(scores, board):
                     copyA = x[i][j]
                 if ((x[i][j].column == b.column) & (x[i][j].row ==  b.row)):
                     copyB = x[i][j]
-        print("A: ", copyA)
-        print("A row: ", copyA.row, "\n",
-        "A column: ", copyA.column)
-        print("B ", copyB)
-        print("B row: ", copyB.row, "\n",
-        "B column: ", copyB.column)
+        # print("A: ", copyA)
+        # print("A column: ", copyA.column, "\n", "A row: ", copyA.row)
+        # print("B ", copyB)
+        # print("B column: ", copyB.column, "\n", "B row: ", copyB.row)
         # The nodes can then be connected and the copy can be stored finally
         copyA.connect(copyB, x)
-        frontier.append([copy.deepcopy(x), y[1]])
+        # Illegal moves don't get added to the frontier
+        if checkIllegalMove(copyA, board):
+            newBoard = copy.deepcopy(x)
+            print("Previous Heuristic: ", prevHeuristic)
+            print("Added Heuristic: ", y[1])
+            if prevHeuristic > maxH:
+                maxH = prevHeuristic
+            newHeuristic = prevHeuristic + y[1]
+            print("New Heuristic: ", newHeuristic)
+            frontier.append([newBoard, newHeuristic])
     sortFrontier()
 
 # Populate frontier[][] and place board states into the priority queue.
 def initializeFrontier():
     print("Initializing the frontier:")
-    makeChildren(calculateHeuristic(gridColumns), gridColumns)
+    makeChildren(calculateHeuristic(gridColumns), gridColumns, 0)
 
 # This function conducts the search, like the "grid search" example.
-def search():
-    if checkSolved():
-        print("The puzzle is solved!")
+def search(runs):
+    for i in range(runs):
+        if checkSolved(frontier[0][0]):
+            print("Solved!!")
+            break    
+        makeChildren(calculateHeuristic(frontier[0][0]), frontier[0][0], frontier[0][1])
+        i = i + 1
+        print("This was run #",i+1)
+        print(maxH)
 
 # Finds all of the guaranteed connections in the board. This should probably return a boardstate and a small 
 # value for a heuristic, but right now it just connects islands in gridColumns.
@@ -537,7 +560,7 @@ def setup():
     populateGrid()
     populateIslandList(gridColumns)
     populateAdjacencyList(gridColumns)
-    populatePairs()
+    populatePairs(gridColumns)
     calculateMaxConnections()
     initializeFrontier()
 
