@@ -10,6 +10,8 @@ frontier = []
 maxConnections = 0
 adjacentPairs = set()
 
+step = 1
+
 boardSize = 7
 
 # The grid that we place all of our cells into
@@ -438,6 +440,7 @@ def calculateMaxConnections():
 def sortFrontier():
     global frontier
     frontier = sorted(frontier, key=lambda tup: tup[1])
+    # frontier = sorted(frontier, key=lambda tup: tup[1[0]])
 
 # Iterate over all of the islands and add pairs to the adjacentPairs set in order to 
 # make connections based on pairs of islands and not on individual islands.
@@ -510,26 +513,28 @@ def makeChildren(scores, board, prevHeuristic):
             newBoard = copy.deepcopy(x)
             print("Previous Heuristic: ", prevHeuristic)
             print("Added Heuristic: ", y[1])
-            if prevHeuristic > maxH:
-                maxH = prevHeuristic
-            newHeuristic = prevHeuristic + y[1]
+            if prevHeuristic[1] > maxH:
+                maxH = prevHeuristic[1]
+            newHeuristic = prevHeuristic[1] + y[1]
             print("New Heuristic: ", newHeuristic)
-            frontier.append([newBoard, newHeuristic])
+            frontier.append([newBoard, [-step, newHeuristic]])
     sortFrontier()
 
 # Populate frontier[][] and place board states into the priority queue.
 def initializeFrontier():
     print("Initializing the frontier:")
-    makeChildren(calculateHeuristic(gridColumns), gridColumns, 0)
+    makeChildren(calculateHeuristic(gridColumns), gridColumns, [0,0])
 
 # This function conducts the search, like the "grid search" example.
 def search(runs):
+    global step
     for i in range(runs):
         if checkSolved(frontier[0][0]):
             print("Solved!!")
             break    
         makeChildren(calculateHeuristic(frontier[0][0]), frontier[0][0], frontier[0][1])
         i = i + 1
+        step = step+1
         print("This was run #",i+1)
         print(maxH)
 
