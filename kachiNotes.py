@@ -434,6 +434,7 @@ def calculateMaxConnections():
     for island in islandList:
         maxConnections += island.maxBridges
 
+# The frontier needs to be sorted twice
 def sortFrontier():
     global frontier
     frontier = sorted(frontier, key=lambda tup: tup[1])
