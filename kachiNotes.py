@@ -613,5 +613,9 @@ def setup():
 
 def main():
     setup()
+    runs = int(input("How many runs would you like to try? (0-1000)"))
     if __name__== "__main__" :
-        main()
+        search(runs)
+        printMaxBridges()
+
+main()
