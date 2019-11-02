@@ -391,11 +391,15 @@ m = gridCell(True, 6, 6, 2)
 
 def printMaxBridges():
     maxBList = []
+    total = 0
     for island in islandList:
         x = island.printCoords()
-        maxBList.append([x, island.maxBridges])
+        y = island.maxBridges
+        maxBList.append([x, y])
+        total = total + y
         # print(island.printCoords() + ": ")
         # print(island.maxBridges)
+    print(total)
     print(maxBList)
 
 def printIslandList():
@@ -412,6 +416,7 @@ def populateIslandList(board):
 
 def populateAdjacencyList(board):
     for island in islandList:
+        island.adjacentIslands.clear()
         if island.maxBridges > 0:
             island.getAdjacents(board)
 
@@ -476,6 +481,8 @@ def populatePairs(board):
             b = frozenset(a)
             adjacentPairs.add(b)
 
+
+
 # Calculate the "value" of each available move in the board.
 def calculateHeuristic(board):
     print("Calculating Heuristic:")
@@ -504,6 +511,8 @@ def makeChildren(scores, board, prevHeuristic):
     print("Making Children:")
     # Make a copy of the board 
     x = copy.deepcopy(board)
+    if len(frontier) > 0:
+        frontier.pop(0)
     while (len(scores) > 0):
         y = scores.pop(0)
         z = list(y[0])
@@ -526,12 +535,12 @@ def makeChildren(scores, board, prevHeuristic):
         # Illegal moves don't get added to the frontier
         if checkIllegalMove(copyA, board):
             newBoard = copy.deepcopy(x)
-            print("Previous Heuristic: ", prevHeuristic)
-            print("Added Heuristic: ", y[1])
+            # print("Previous Heuristic: ", prevHeuristic)
+            # print("Added Heuristic: ", y[1])
             if prevHeuristic[1] > maxH:
                 maxH = prevHeuristic[1]
             newHeuristic = prevHeuristic[1] + y[1]
-            print("New Heuristic: ", newHeuristic)
+            # print("New Heuristic: ", newHeuristic)
             frontier.append([newBoard, [-step, newHeuristic]])
     sortFrontier()
 
